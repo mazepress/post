@@ -11,23 +11,23 @@ In your `composer.json` file:
 
 ```json
 {
-	"minimum-stability": "dev",
-	"repositories": [
-        {
-            "type": "vcs",
-      		"url": "https://github.com/mazepress/post.git"
-        }
-	],
-	"require": {
-		"mazepress/post": "dev-main"
-	},
-	"extra": {
-		"installer-paths": {
-			"packages/{$name}": [
-				"mazepress/post"
-			]
-		}
-	}
+  "minimum-stability": "dev",
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://github.com/mazepress/post.git"
+    }
+  ],
+  "require": {
+    "mazepress/post": "dev-main"
+  },
+  "extra": {
+    "installer-paths": {
+      "packages/{$name}": [
+        "mazepress/post"
+      ]
+    }
+  }
 }
 ```
 Finally, you can simply run the following command for updating the composer:
