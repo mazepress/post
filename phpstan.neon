@@ -5,10 +5,7 @@ parameters:
 	paths:
 		- src
 		- tests
-		- templates
-		- skeleton.php
 	excludePaths:
 		- packages
 		- vendor
-		- node_modules
 	ignoreErrors:
