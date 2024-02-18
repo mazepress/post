@@ -1,0 +1,14 @@
+includes:
+	- ./vendor/szepeviktor/phpstan-wordpress/extension.neon
+parameters:
+	level: 6
+	paths:
+		- src
+		- tests
+		- templates
+		- skeleton.php
+	excludePaths:
+		- packages
+		- vendor
+		- node_modules
+	ignoreErrors:
