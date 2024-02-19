@@ -1,7 +1,7 @@
 {
 	"name": "mazepress/post",
 	"type": "wordpress-plugin",
-	"description": "A package library for managing custom post type.",
+	"description": "A package library for creating WordPress custom post.",
 	"license": "MIT",
 	"require": {
 		"php": "^7.4 | ^8.0",
