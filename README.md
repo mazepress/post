@@ -11,15 +11,16 @@ In your `composer.json` file:
 
 ```json
 {
-  "minimum-stability": "dev",
+  "minimum-stability": "stable",
+  "prefer-stable": true,
   "repositories": [
     {
-      "type": "vcs",
-      "url": "https://github.com/mazepress/post.git"
+      "type": "composer",
+      "url": "https://mazepress.github.io/packagist"
     }
   ],
   "require": {
-    "mazepress/post": "dev-main"
+    "mazepress/post": "^1.0"
   },
   "extra": {
     "installer-paths": {

@@ -34,7 +34,7 @@
 		}
 	},
 	"prefer-stable": true,
-	"minimum-stability": "dev",
+	"minimum-stability": "stable",
 	"config": {
 		"optimize-autoloader": true,
 		"sort-packages": true,
