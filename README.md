@@ -1,6 +1,8 @@
 # MazePress - Post
 A package library for managing custom post type.
 
+[![Code Analysis](https://github.com/mazepress/post/actions/workflows/analyse.yml/badge.svg)](https://github.com/mazepress/post/actions/workflows/analyse.yml)
+
 ## Installation
 The simplest way to get up and running with this package is using [Composer](http://getcomposer.org/).
 In your `composer.json` file:
