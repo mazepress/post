@@ -132,4 +132,68 @@ class BasePostTest extends TestCase {
 		$this->assertEquals( $object->get_post_type(), $post['post_type'] );
 		$this->assertEquals( 'Test Meta Value', $post['test_meta'] );
 	}
+
+	/**
+	 * Test the save_post function
+	 *
+	 * @return void
+	 */
+	public function test_save_post(): void {
+
+		$object  = new HelloWorld();
+		$title   = 'Post Title';
+		$content = 'Test content!';
+		$author  = 1;
+		$metas   = array(
+			'first_name' => 'First',
+			'last_name'  => 'Last',
+		);
+		$params  = array(
+			'post_type'    => 'hello-world',
+			'post_status'  => 'publish',
+			'post_title'   => $title,
+			'post_content' => $content,
+			'post_author'  => $author,
+			'meta_input'   => array(
+				'_first_name' => 'First',
+				'_last_name'  => 'Last',
+			),
+		);
+
+		WP_Mock::userFunction( 'wp_insert_post' )
+			->once()
+			->with( $params )
+			->andReturn( 101 );
+
+		$post_id = $object->save_post( $title, $content, $metas, $author );
+
+		$this->assertNotEmpty( $post_id );
+		$this->assertEquals( 101, $post_id );
+	}
+
+	/**
+	 * Test the update_post_metas function
+	 *
+	 * @return void
+	 */
+	public function test_update_post_metas(): void {
+
+		$object = new HelloWorld();
+		$metas  = array(
+			'first_name' => 'First',
+			'last_name'  => 'Last',
+		);
+
+		WP_Mock::userFunction( 'update_post_meta' )
+			->once()
+			->with( 101, '_first_name', 'First' );
+
+		WP_Mock::userFunction( 'update_post_meta' )
+			->once()
+			->with( 101, '_last_name', 'Last' );
+
+		$object->update_post_metas( 101, $metas );
+
+		$this->assertConditionsMet();
+	}
 }

@@ -135,6 +135,66 @@ abstract class BasePost implements PostTypeInterface {
 	}
 
 	/**
+	 * Save the post
+	 *
+	 * @param string       $title   The post title.
+	 * @param string       $content The post content.
+	 * @param array<mixed> $meta    The post meta.
+	 * @param int          $author  The post created by.
+	 *
+	 * @return int
+	 */
+	public function save_post( string $title, string $content = '', array $meta = array(), int $author = 0 ): int {
+
+		$post = array(
+			'post_type'    => $this->get_post_type(),
+			'post_status'  => 'publish',
+			'post_title'   => $title,
+			'post_content' => $content,
+			'post_author'  => $author,
+		);
+
+		if ( ! empty( $meta ) ) {
+
+			$post['meta_input'] = array();
+
+			foreach ( $meta as $key => $value ) {
+				// Check for the key prefix.
+				if ( is_string( $key ) && 0 !== strpos( $key, '_' ) ) {
+					$key = '_' . $key;
+				}
+				$post['meta_input'][ $key ] = $value;
+			}
+		}
+
+		// Create the post.
+		$post_id = wp_insert_post( $post );
+
+		return $post_id;
+	}
+
+	/**
+	 * Update the post
+	 *
+	 * @param int          $post_id The post ID.
+	 * @param array<mixed> $data    The post data.
+	 *
+	 * @return void
+	 */
+	public function update_post_metas( int $post_id, array $data ): void {
+
+		foreach ( $data as $key => $value ) {
+			// Check for the key prefix.
+			if ( is_string( $key ) && 0 !== strpos( $key, '_' ) ) {
+				$key = '_' . $key;
+			}
+
+			// Update the meta field.
+			update_post_meta( $post_id, $key, $value );
+		}
+	}
+
+	/**
 	 * Get the ID.
 	 *
 	 * @return int|null
