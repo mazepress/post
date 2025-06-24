@@ -74,6 +74,67 @@ abstract class BasePost implements PostTypeInterface {
 	abstract public function get_post_type(): string;
 
 	/**
+	 * Get the post.
+	 *
+	 * @param int $post_id The post ID.
+	 *
+	 * @return array<mixed>
+	 */
+	public function get_post( int $post_id ): array {
+
+		// Get the default post data.
+		$data = get_post( $post_id, ARRAY_A );
+
+		if ( ! empty( $data ) ) {
+
+			// Get all the metas.
+			$metas = get_post_meta( $post_id );
+
+			foreach ( $metas as $key => $value ) {
+				if ( ! empty( $key ) && is_array( $value ) ) {
+					$data[ ltrim( $key, '_' ) ] = maybe_unserialize( array_shift( $value ) );
+				}
+			}
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Get all the posts.
+	 *
+	 * @phpcs:disable WordPress.DB.SlowDBQuery
+	 *
+	 * @param array<mixed> $args The argument fields.
+	 *
+	 * @return array<mixed>
+	 */
+	public function get_posts( array $args = array() ): array {
+
+		$args = wp_parse_args(
+			$args,
+			array(
+				'post_status' => array( 'publish' ),
+				'numberposts' => -1,
+				'nopaging'    => true,
+				'meta_query'  => array(),
+			)
+		);
+
+		$args['post_type'] = $this->get_post_type();
+		$args['fields']    = 'ids';
+
+		$posts = get_posts( $args );
+		$data  = array();
+
+		foreach ( $posts as $post_id ) {
+			$data[ $post_id ] = $this->get_post( $post_id );
+		}
+
+		return $data;
+	}
+
+	/**
 	 * Get the ID.
 	 *
 	 * @return int|null
