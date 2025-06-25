@@ -217,7 +217,7 @@ class BasePostTest extends TestCase {
 			->with( 101 )
 			->andReturn( $metas );
 
-		$post = $object->get_post_by( 'Test Meta Value', 'test_meta' );
+		$post = $object->get_post_by( 'Test Meta Value', 'test_meta', true );
 
 		$this->assertNotEmpty( $post );
 		$this->assertEquals( $object->get_post_type(), $post['post_type'] );
