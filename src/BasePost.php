@@ -117,7 +117,6 @@ abstract class BasePost implements PostTypeInterface {
 				'post_status' => array( 'publish' ),
 				'numberposts' => -1,
 				'nopaging'    => true,
-				'meta_query'  => array(),
 			)
 		);
 
@@ -132,6 +131,33 @@ abstract class BasePost implements PostTypeInterface {
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Get the post by field.
+	 *
+	 * @phpcs:disable WordPress.DB.SlowDBQuery
+	 *
+	 * @param string $value The field value.
+	 * @param string $field The field name.
+	 *
+	 * @return array<mixed>
+	 */
+	public function get_post_by( string $value, string $field = 'slug' ): array {
+
+		$args = array( 'numberposts' => 1 );
+
+		if ( 'slug' === $field ) {
+			$args['name'] = $value;
+		} else {
+			$args['meta_key']   = $field;
+			$args['meta_value'] = $value;
+		}
+
+		$posts = $this->get_posts( $args );
+		$post  = ! empty( $posts ) ? array_shift( $posts ) : array();
+
+		return $post;
 	}
 
 	/**
@@ -159,10 +185,10 @@ abstract class BasePost implements PostTypeInterface {
 			$post['meta_input'] = array();
 
 			foreach ( $meta as $key => $value ) {
-				// Check for the key prefix.
-				if ( is_string( $key ) && 0 !== strpos( $key, '_' ) ) {
-					$key = '_' . $key;
-				}
+				// Parse the key name.
+				$key = $this->parse_meta_key( $key );
+
+				// Set the meta fields.
 				$post['meta_input'][ $key ] = $value;
 			}
 		}
@@ -184,14 +210,29 @@ abstract class BasePost implements PostTypeInterface {
 	public function update_post_metas( int $post_id, array $data ): void {
 
 		foreach ( $data as $key => $value ) {
-			// Check for the key prefix.
-			if ( is_string( $key ) && 0 !== strpos( $key, '_' ) ) {
-				$key = '_' . $key;
-			}
+			// Parse the key name.
+			$key = $this->parse_meta_key( $key );
 
 			// Update the meta field.
 			update_post_meta( $post_id, $key, $value );
 		}
+	}
+
+	/**
+	 * Parse the meta field key with underscore
+	 *
+	 * @param string $key The meta key.
+	 *
+	 * @return string
+	 */
+	public function parse_meta_key( string $key ): string {
+
+		// Add the underscore prefix.
+		if ( ! empty( $key ) && 0 !== strpos( $key, '_' ) ) {
+			$key = '_' . $key;
+		}
+
+		return $key;
 	}
 
 	/**

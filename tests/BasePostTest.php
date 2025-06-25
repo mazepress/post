@@ -69,11 +69,12 @@ class BasePostTest extends TestCase {
 		$object = new HelloWorld();
 		$post   = array(
 			'ID'         => 101,
+			'name'       => 'test-title',
 			'post_title' => 'Test Title',
 			'post_type'  => $object->get_post_type(),
 		);
 		$metas  = array(
-			'_test_meta' => array( 'Test Meta Value' ),
+			'test_meta' => array( 'Test Meta Value' ),
 		);
 
 		WP_Mock::userFunction( 'get_post' )
@@ -103,15 +104,24 @@ class BasePostTest extends TestCase {
 		$object = new HelloWorld();
 		$post   = array(
 			'ID'         => 101,
+			'name'       => 'test-title',
 			'post_title' => 'Test Title',
 			'post_type'  => $object->get_post_type(),
 		);
 		$metas  = array(
-			'_test_meta' => array( 'Test Meta Value' ),
+			'test_meta' => array( 'Test Meta Value' ),
+		);
+		$params = array(
+			'post_status' => array( 'publish' ),
+			'numberposts' => -1,
+			'nopaging'    => true,
+			'post_type'   => $object->get_post_type(),
+			'fields'      => 'ids',
 		);
 
 		WP_Mock::userFunction( 'get_posts' )
 			->once()
+			->with( $params )
 			->andReturn( array( 101 ) );
 
 		WP_Mock::userFunction( 'get_post' )
@@ -131,6 +141,86 @@ class BasePostTest extends TestCase {
 		$this->assertNotEmpty( $post );
 		$this->assertEquals( $object->get_post_type(), $post['post_type'] );
 		$this->assertEquals( 'Test Meta Value', $post['test_meta'] );
+	}
+
+	/**
+	 * Test the get_post_by function
+	 *
+	 * @phpcs:disable WordPress.DB.SlowDBQuery
+	 *
+	 * @return void
+	 */
+	public function test_get_post_by(): void {
+
+		$object = new HelloWorld();
+		$post   = array(
+			'ID'         => 101,
+			'name'       => 'test-title',
+			'post_title' => 'Test Title',
+			'post_type'  => $object->get_post_type(),
+		);
+		$metas  = array(
+			'test_meta' => array( 'Test Meta Value' ),
+		);
+		$params = array(
+			'post_status' => array( 'publish' ),
+			'numberposts' => 1,
+			'nopaging'    => true,
+			'post_type'   => $object->get_post_type(),
+			'fields'      => 'ids',
+			'name'        => 'test-title',
+		);
+
+		WP_Mock::userFunction( 'get_posts' )
+			->once()
+			->with( $params )
+			->andReturn( array( 101 ) );
+
+		WP_Mock::userFunction( 'get_post' )
+			->once()
+			->with( 101, ARRAY_A )
+			->andReturn( $post );
+
+		WP_Mock::userFunction( 'get_post_meta' )
+			->once()
+			->with( 101 )
+			->andReturn( $metas );
+
+		$post = $object->get_post_by( 'test-title' );
+
+		$this->assertNotEmpty( $post );
+		$this->assertEquals( $object->get_post_type(), $post['post_type'] );
+		$this->assertEquals( 'Test Meta Value', $post['test_meta'] );
+
+		$params = array(
+			'post_status' => array( 'publish' ),
+			'numberposts' => 1,
+			'nopaging'    => true,
+			'post_type'   => $object->get_post_type(),
+			'fields'      => 'ids',
+			'meta_key'    => 'test_meta',
+			'meta_value'  => 'Test Meta Value',
+		);
+
+		WP_Mock::userFunction( 'get_posts' )
+			->once()
+			->with( $params )
+			->andReturn( array( 101 ) );
+
+		WP_Mock::userFunction( 'get_post' )
+			->once()
+			->with( 101, ARRAY_A )
+			->andReturn( $post );
+
+		WP_Mock::userFunction( 'get_post_meta' )
+			->once()
+			->with( 101 )
+			->andReturn( $metas );
+
+		$post = $object->get_post_by( 'Test Meta Value', 'test_meta' );
+
+		$this->assertNotEmpty( $post );
+		$this->assertEquals( $object->get_post_type(), $post['post_type'] );
 	}
 
 	/**
@@ -195,5 +285,18 @@ class BasePostTest extends TestCase {
 		$object->update_post_metas( 101, $metas );
 
 		$this->assertConditionsMet();
+	}
+
+	/**
+	 * Test the parse_meta_key function
+	 *
+	 * @return void
+	 */
+	public function test_parse_meta_key(): void {
+
+		$object = new HelloWorld();
+
+		$this->assertEquals( '_test_key', $object->parse_meta_key( 'test_key' ) );
+		$this->assertEquals( '_test_key', $object->parse_meta_key( '_test_key' ) );
 	}
 }
