@@ -140,16 +140,22 @@ abstract class BasePost implements PostTypeInterface {
 	 *
 	 * @param string $value The field value.
 	 * @param string $field The field name.
+	 * @param bool   $parse Parse the field name.
 	 *
 	 * @return array<mixed>
 	 */
-	public function get_post_by( string $value, string $field = 'slug' ): array {
+	public function get_post_by( string $value, string $field = 'slug', bool $parse = true ): array {
 
 		$args = array( 'numberposts' => 1 );
 
 		if ( 'slug' === $field ) {
 			$args['name'] = $value;
 		} else {
+
+			if ( $parse ) {
+				$field = $this->parse_meta_key( $field );
+			}
+
 			$args['meta_key']   = $field;
 			$args['meta_value'] = $value;
 		}

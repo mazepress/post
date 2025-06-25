@@ -198,7 +198,7 @@ class BasePostTest extends TestCase {
 			'nopaging'    => true,
 			'post_type'   => $object->get_post_type(),
 			'fields'      => 'ids',
-			'meta_key'    => 'test_meta',
+			'meta_key'    => '_test_meta',
 			'meta_value'  => 'Test Meta Value',
 		);
 
