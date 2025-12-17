@@ -97,7 +97,7 @@ abstract class BasePost implements PostTypeInterface {
 			}
 		}
 
-		return $data;
+		return is_array( $data ) ? $data : array();
 	}
 
 	/**
