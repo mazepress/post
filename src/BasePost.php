@@ -227,7 +227,14 @@ abstract class BasePost implements PostTypeInterface {
 	 * @return void
 	 */
 	public function update_post_metas( int $post_id, array $meta_input, array $public_keys = array() ): void {
-		$this->update_post( $post_id, array( 'meta_input' => $meta_input ), $public_keys );
+
+		// Parse the input.
+		$meta_input = $this->parse_meta_input( $meta_input, $public_keys );
+
+		foreach ( $meta_input as $key => $value ) {
+			// Update the meta field.
+			update_post_meta( $post_id, $key, $value );
+		}
 	}
 
 	/**
@@ -251,22 +258,34 @@ abstract class BasePost implements PostTypeInterface {
 		}
 
 		if ( ! empty( $postarr['meta_input'] ) && is_array( $postarr['meta_input'] ) ) {
-
-			$meta_input = array();
-
-			foreach ( $postarr['meta_input'] as $key => $value ) {
-				// Parse the key and add it to meta.
-				$meta_key = in_array( $key, $public_keys, true ) ? $key : $this->parse_meta_key( $key );
-
-				// Append meta.
-				$meta_input[ $meta_key ] = $value;
-			}
-
-			// Replace meta.
-			$postarr['meta_input'] = $meta_input;
+			// Parse meta.
+			$postarr['meta_input'] = $this->parse_meta_input( $postarr['meta_input'], $public_keys );
 		}
 
 		return $postarr;
+	}
+
+	/**
+	 * Parse the post array
+	 *
+	 * @param array<mixed> $meta_input  The meta data.
+	 * @param array<mixed> $public_keys The public meta keys.
+	 *
+	 * @return array<mixed>
+	 */
+	public function parse_meta_input( array $meta_input, array $public_keys = array() ): array {
+
+		$new_meta = array();
+
+		foreach ( $meta_input as $key => $value ) {
+			// Parse the key and add it to meta.
+			$meta_key = ! in_array( $key, $public_keys, true ) ? $this->parse_meta_key( $key ) : $key;
+
+			// Append meta.
+			$new_meta[ $meta_key ] = $value;
+		}
+
+		return $new_meta;
 	}
 
 	/**

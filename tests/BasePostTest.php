@@ -306,10 +306,13 @@ class BasePostTest extends TestCase {
 		$parsedtarr       = $object->parse_post_array( array( 'meta_input' => $meta_input ), array( 'public_key1' ) );
 		$parsedtarr['ID'] = $post_id;
 
-		WP_Mock::userFunction( 'wp_update_post' )
+		WP_Mock::userFunction( 'update_post_meta' )
 			->once()
-			->with( $parsedtarr )
-			->andReturn( $post_id );
+			->with( $post_id, 'public_key1', 'Value5' );
+
+		WP_Mock::userFunction( 'update_post_meta' )
+			->once()
+			->with( $post_id, '_hidden_key1', 'Value6' );
 
 		$object->update_post_metas( $post_id, $meta_input, array( 'public_key1' ) );
 
