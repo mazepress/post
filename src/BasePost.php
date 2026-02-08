@@ -168,38 +168,28 @@ abstract class BasePost implements PostTypeInterface {
 	/**
 	 * Save the post
 	 *
-	 * @param string       $title   The post title.
-	 * @param string       $content The post content.
-	 * @param array<mixed> $meta    The post meta.
-	 * @param int          $author  The post created by.
+	 * @param string       $title       The post title.
+	 * @param array<mixed> $postarr     The post data.
+	 * @param array<mixed> $public_keys The public meta keys.
 	 *
 	 * @return int
 	 */
-	public function save_post( string $title, string $content = '', array $meta = array(), int $author = 0 ): int {
+	public function save_post( string $title, array $postarr, array $public_keys = array() ): int {
 
-		$post = array(
-			'post_type'    => $this->get_post_type(),
-			'post_status'  => 'publish',
-			'post_title'   => $title,
-			'post_content' => $content,
-			'post_author'  => $author,
-		);
+		// Sanitize.
+		unset( $postarr['ID'] );
 
-		if ( ! empty( $meta ) ) {
+		// Parse the array.
+		$postarr = $this->parse_post_array( $postarr, $public_keys );
 
-			$post['meta_input'] = array();
-
-			foreach ( $meta as $key => $value ) {
-				// Parse the key name.
-				$key = $this->parse_meta_key( $key );
-
-				// Set the meta fields.
-				$post['meta_input'][ $key ] = $value;
-			}
-		}
+		// Set default values.
+		$postarr['post_type']    = $this->get_post_type();
+		$postarr['post_title']   = $title;
+		$postarr['post_content'] = ! empty( $postarr['post_content'] ) ? $postarr['post_content'] : '';
+		$postarr['post_status']  = ! empty( $postarr['post_status'] ) ? $postarr['post_status'] : 'publish';
 
 		// Create the post.
-		$post_id = wp_insert_post( $post );
+		$post_id = wp_insert_post( $postarr );
 
 		return $post_id;
 	}
@@ -207,20 +197,76 @@ abstract class BasePost implements PostTypeInterface {
 	/**
 	 * Update the post
 	 *
-	 * @param int          $post_id The post ID.
-	 * @param array<mixed> $data    The post data.
+	 * @param int          $post_id     The post ID.
+	 * @param array<mixed> $postarr     The post data.
+	 * @param array<mixed> $public_keys The public meta keys.
+	 *
+	 * @return int
+	 */
+	public function update_post( int $post_id, array $postarr = array(), array $public_keys = array() ): int {
+
+		// Parse the array.
+		$postarr = $this->parse_post_array( $postarr, $public_keys );
+
+		// Set the post ID.
+		$postarr['ID'] = $post_id;
+
+		// Update the post.
+		$post_id = wp_update_post( $postarr );
+
+		return $post_id;
+	}
+
+	/**
+	 * Update the post metas
+	 *
+	 * @param int          $post_id     The post ID.
+	 * @param array<mixed> $meta_input  The post data.
+	 * @param array<mixed> $public_keys The public meta keys.
 	 *
 	 * @return void
 	 */
-	public function update_post_metas( int $post_id, array $data ): void {
+	public function update_post_metas( int $post_id, array $meta_input, array $public_keys = array() ): void {
+		$this->update_post( $post_id, array( 'meta_input' => $meta_input ), $public_keys );
+	}
 
-		foreach ( $data as $key => $value ) {
-			// Parse the key name.
-			$key = $this->parse_meta_key( $key );
+	/**
+	 * Parse the post array
+	 *
+	 * @param array<mixed> $postarr     The post data.
+	 * @param array<mixed> $public_keys The public meta keys.
+	 *
+	 * @return array<mixed>
+	 */
+	public function parse_post_array( array $postarr, array $public_keys = array() ): array {
 
-			// Update the meta field.
-			update_post_meta( $post_id, $key, $value );
+		if ( ! empty( $postarr['post_content'] ) ) {
+			// Add support for back slash.
+			$postarr['post_content'] = wp_slash( $postarr['post_content'] );
 		}
+
+		if ( ! empty( $postarr['post_date'] ) ) {
+			// Add support for back slash.
+			$postarr['post_date_gmt'] = get_gmt_from_date( $postarr['post_date'] );
+		}
+
+		if ( ! empty( $postarr['meta_input'] ) && is_array( $postarr['meta_input'] ) ) {
+
+			$meta_input = array();
+
+			foreach ( $postarr['meta_input'] as $key => $value ) {
+				// Parse the key and add it to meta.
+				$meta_key = in_array( $key, $public_keys, true ) ? $key : $this->parse_meta_key( $key );
+
+				// Append meta.
+				$meta_input[ $meta_key ] = $value;
+			}
+
+			// Replace meta.
+			$postarr['meta_input'] = $meta_input;
+		}
+
+		return $postarr;
 	}
 
 	/**

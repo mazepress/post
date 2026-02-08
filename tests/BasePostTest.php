@@ -232,33 +232,61 @@ class BasePostTest extends TestCase {
 
 		$object  = new HelloWorld();
 		$title   = 'Post Title';
-		$content = 'Test content!';
-		$author  = 1;
-		$metas   = array(
-			'first_name' => 'First',
-			'last_name'  => 'Last',
-		);
-		$params  = array(
-			'post_type'    => 'hello-world',
-			'post_status'  => 'publish',
-			'post_title'   => $title,
-			'post_content' => $content,
-			'post_author'  => $author,
+		$postarr = array(
+			'post_content' => 'Test Content',
 			'meta_input'   => array(
-				'_first_name' => 'First',
-				'_last_name'  => 'Last',
+				'public_key1' => 'Value1',
+				'hidden_key1' => 'Value2',
 			),
 		);
 
+		$parsedtarr                = $object->parse_post_array( $postarr, array( 'public_key1' ) );
+		$parsedtarr['post_type']   = $object->get_post_type();
+		$parsedtarr['post_title']  = $title;
+		$parsedtarr['post_status'] = 'publish';
+
 		WP_Mock::userFunction( 'wp_insert_post' )
 			->once()
-			->with( $params )
+			->with( $parsedtarr )
 			->andReturn( 101 );
 
-		$post_id = $object->save_post( $title, $content, $metas, $author );
+		$post_id = $object->save_post( $title, $postarr, array( 'public_key1' ) );
 
 		$this->assertNotEmpty( $post_id );
 		$this->assertEquals( 101, $post_id );
+	}
+
+	/**
+	 * Test the update_post function
+	 *
+	 * @return void
+	 */
+	public function test_update_post(): void {
+
+		$object  = new HelloWorld();
+		$post_id = 101;
+		$postarr = array(
+			'post_date'  => '20206-01-01 00:00:01',
+			'meta_input' => array(
+				'public_key1' => 'Value3',
+				'hidden_key1' => 'Value4',
+			),
+		);
+
+		$parsedtarr       = $object->parse_post_array( $postarr, array( 'public_key1' ) );
+		$parsedtarr['ID'] = $post_id;
+
+		$this->assertNotEmpty( $parsedtarr['post_date_gmt'] );
+
+		WP_Mock::userFunction( 'wp_update_post' )
+			->once()
+			->with( $parsedtarr )
+			->andReturn( $post_id );
+
+		$result = $object->update_post( $post_id, $postarr, array( 'public_key1' ) );
+
+		$this->assertNotEmpty( $post_id );
+		$this->assertEquals( $post_id, $result );
 	}
 
 	/**
@@ -268,21 +296,22 @@ class BasePostTest extends TestCase {
 	 */
 	public function test_update_post_metas(): void {
 
-		$object = new HelloWorld();
-		$metas  = array(
-			'first_name' => 'First',
-			'last_name'  => 'Last',
+		$object     = new HelloWorld();
+		$post_id    = 101;
+		$meta_input = array(
+			'public_key1' => 'Value5',
+			'hidden_key1' => 'Value6',
 		);
 
-		WP_Mock::userFunction( 'update_post_meta' )
-			->once()
-			->with( 101, '_first_name', 'First' );
+		$parsedtarr       = $object->parse_post_array( array( 'meta_input' => $meta_input ), array( 'public_key1' ) );
+		$parsedtarr['ID'] = $post_id;
 
-		WP_Mock::userFunction( 'update_post_meta' )
+		WP_Mock::userFunction( 'wp_update_post' )
 			->once()
-			->with( 101, '_last_name', 'Last' );
+			->with( $parsedtarr )
+			->andReturn( $post_id );
 
-		$object->update_post_metas( 101, $metas );
+		$object->update_post_metas( $post_id, $meta_input, array( 'public_key1' ) );
 
 		$this->assertConditionsMet();
 	}
