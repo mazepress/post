@@ -203,7 +203,7 @@ abstract class BasePost implements PostTypeInterface {
 	 *
 	 * @return int
 	 */
-	public function update_post( int $post_id, array $postarr = array(), array $public_keys = array() ): int {
+	public function update_post( int $post_id, array $postarr, array $public_keys = array() ): int {
 
 		// Parse the array.
 		$postarr = $this->parse_post_array( $postarr, $public_keys );
